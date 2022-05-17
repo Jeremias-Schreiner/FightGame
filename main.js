@@ -4,12 +4,12 @@ const canvasContext = canvas.getContext('2d');
 canvas.width = 1024;
 canvas.height = 576;
 
-const gravity = .3;
+const gravity = .5;
 
 canvasContext.fillRect(0, 0, canvas.width, canvas.height);
 
 class Sprite{
-    constructor({position, velocity, color})
+    constructor({position, velocity, color, offset})
     {
         this.position = position;
         this.velocity = velocity;
@@ -17,7 +17,11 @@ class Sprite{
         this.width = 50;
         this.lastKey;
         this.attackBox = {
-            position: this.position,
+            position: {
+                x: this.position.x,
+                y: this.position.y
+            },
+            offset: offset,
             width:100,
             height:50,
 
@@ -32,17 +36,21 @@ class Sprite{
         canvasContext.fillRect(this.position.x, this.position.y, this.width, this.height);
 
         //atack box
-        canvasContext.fillStyle = 'green'
-        canvasContext.fillRect(
-            this.attackBox.position.x,
-            this.attackBox.position.y,
-            this.attackBox.width,
-            this.attackBox.height
-        );
+        if (this.isAttacking){
+            canvasContext.fillStyle = 'green'
+            canvasContext.fillRect(
+                this.attackBox.position.x,
+                this.attackBox.position.y,
+                this.attackBox.width,
+                this.attackBox.height
+            );
+        }
     }
 
     update(){
         this.draw();
+        this.attackBox.position.x = this.position.x + this.attackBox.offset.x;
+        this.attackBox.position.y = this.position.y;
         this.position.x += this.velocity.x;
         this.position.y += this.velocity.y;
 
@@ -53,6 +61,16 @@ class Sprite{
             this.velocity.y += gravity;
         }
         
+    }
+
+    attack(){
+        this.isAttacking = true;
+        setTimeout(
+            ()=>{
+                this.isAttacking = false;
+            },
+            100
+        );
     }
 }
 
@@ -66,7 +84,11 @@ const player = new Sprite(
             x:0,
             y:0
         },
-        color: 'red'
+        color: 'red',
+        offset:{
+            x:0,
+            y:0
+        }
     }
 );
 
@@ -80,7 +102,11 @@ const enemy = new Sprite(
             x:0,
             y:0
         },
-        color: 'blue'
+        color: 'blue',
+        offset:{
+            x:-50,
+            y:0
+        }
     }
 );
 
@@ -99,13 +125,23 @@ const keys = {
     }
 }
 
+function rectangularCollision({ rectangle1, rectangle2}){
+    return (
+        rectangle1.attackBox.position.x + rectangle1.attackBox.width >= rectangle2.position.x //el lado derecho de la attackbox >= el lado izquierdo del enemigo
+        && rectangle1.attackBox.position.x <= rectangle2.position.x + rectangle2.width //el lado izquiedo de la attackbox >= el lado derecho del enemigo
+        //estos dos son para ateques y salto
+        && rectangle1.attackBox.position.y + rectangle1.attackBox.height >= rectangle2.position.y
+        && rectangle1.attackBox.position.y <= rectangle2.position.y + rectangle2.height
+    )
+}
+
 function animate(){
     window.requestAnimationFrame(animate);
     canvasContext.fillStyle = 'black';
     canvasContext.fillRect(0, 0, canvas.width, canvas.height);
     player.update();
     enemy.update();
-    const baseVelocity = 5;
+    const baseVelocity = 10;
 
     //Player movement 
     player.velocity.x = 0;
@@ -127,14 +163,26 @@ function animate(){
 
 
    //dectect for collision
-   if ( player.attackBox.position.x + player.attackBox.width >= enemy.position.x 
-        && player.attackBox.position.x <= enemy.position.x + enemy.width
-        && player.attackBox.position.y + player.attackBox.height >= enemy.position.y
-        && player.attackBox.position.y <= enemy.position.y + enemy.height
-        //&& player.isAttacking 
-   ){
-       console.log('nos tocamos')
-   }
+   if ( 
+       rectangularCollision({
+            rectangle1: player,
+            rectangle2: enemy
+       })
+       && player.isAttacking
+    ){
+       player.isAttacking = false;
+       console.log('ataque jugador')
+    }
+    if ( 
+        rectangularCollision({
+             rectangle1: enemy,
+             rectangle2: player
+        })
+        && enemy.isAttacking
+     ){
+        enemy.isAttacking = false;
+        console.log('ataque enemigo')
+     }
 }
 
 
@@ -153,7 +201,11 @@ window.addEventListener('keydown', (event)=>{
             player.lastKey = 'a';
             break;
         case 'w':
-            player.velocity.y = -13;
+            player.velocity.y = -15;
+            break;
+        
+        case ' ':
+            player.attack();
             break;
 
         //Enemy Keys
@@ -166,9 +218,13 @@ window.addEventListener('keydown', (event)=>{
             enemy.lastKey = 'ArrowLeft';
             break;
         case 'ArrowUp':
-            enemy.velocity.y = -13;
+            enemy.velocity.y = -15;
+            break;
+        case 'Enter':
+            enemy.attack()
             break;
     }
+    console.log(event.key);
 });
 
 window.addEventListener('keyup', (event)=>{
@@ -190,6 +246,5 @@ window.addEventListener('keyup', (event)=>{
         case 'ArrowLeft':
             keys.ArrowLeft.pressed = false;
             break;
-}       
-    console.log(event.key);
+    }       
 });
