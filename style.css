@@ -21,14 +21,31 @@
     flex-shrink: 0;
 }
 
-.health{
-    background-color: yellow;
-    height: 30px;
-    width: 100%;
-}
-
 .health-container{
     position: relative;
     height: 30px;
     width: 100%;
+}
+
+.background-health{
+    background-color: yellow;
+    height: 30px;
+}
+
+.player-health{
+    position: absolute;
+    background-color: blue;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+}
+
+.enemy-health{
+    position: absolute;
+    background: blue;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
 }
