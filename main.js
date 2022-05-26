@@ -136,6 +136,41 @@ function rectangularCollision({ rectangle1, rectangle2}){
     )
 }
 
+function determineWinner(timerId){
+    clearTimeout(timerId);
+    var endgameLabel = document.querySelector("#endgame");
+    if (player.health === enemy.health){
+        endgameLabel.innerHTML = "TIE!!!";
+    }
+
+    else if(player.health > enemy.health){
+        endgameLabel.innerHTML = 'PLAYER 1 WINS!!!';
+    }
+    else if (player.health < enemy.health){
+        endgameLabel.innerHTML = 'PLAYER 2 WINS!!!';
+    }
+    window.removeEventListener('keydown', keyDownEvent);
+}
+
+let timer = 60; //Es 61 porque por algun motivo se decrementa antes de mostrarse, no estoy seguro todavia porque
+let timerId;
+function decreaseTimer(){
+    let timerConteiner = document.querySelector("#timer");
+    timerConteiner.innerHTML = timer; 
+    if (timer > 0){
+       timerId = setTimeout(decreaseTimer, 1000)
+       timer--;
+       timerConteiner.innerHTML= timer;
+    }
+
+    if (timer === 0){
+        determineWinner(timerId);
+    }
+    
+}
+
+decreaseTimer();
+
 function animate(){
     window.requestAnimationFrame(animate);
     canvasContext.fillStyle = 'black';
@@ -172,7 +207,6 @@ function animate(){
        && player.isAttacking
     ){
        player.isAttacking = false;
-       console.log('ataque jugador')
        enemy.health -=20;
        document.querySelector('#enemyHealth').style.width = enemy.health +'%'
     }
@@ -186,7 +220,11 @@ function animate(){
         enemy.isAttacking = false;
         player.health -=20;
         document.querySelector('#playerHealth').style.width = player.health +'%'
-        console.log('ataque enemigo')
+     }
+
+     //end game base on health
+     if (player.health <= 0 || enemy.health <= 0){
+         determineWinner(timerId);
      }
 }
 
@@ -194,8 +232,8 @@ function animate(){
 
 animate();
 
-window.addEventListener('keydown', (event)=>{
-    //PLayer Keys
+
+function keyDownEvent(event){
     switch (event.key){
         case 'd':
             keys.d.pressed = true;
@@ -229,8 +267,9 @@ window.addEventListener('keydown', (event)=>{
             enemy.attack()
             break;
     }
-    console.log(event.key);
-});
+}
+
+window.addEventListener('keydown', keyDownEvent);
 
 window.addEventListener('keyup', (event)=>{
     switch (event.key){
