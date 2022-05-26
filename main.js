@@ -152,7 +152,7 @@ function determineWinner(timerId){
     window.removeEventListener('keydown', keyDownEvent);
 }
 
-let timer = 60; //Es 61 porque por algun motivo se decrementa antes de mostrarse, no estoy seguro todavia porque
+let timer = 61; //Es 61 porque por algun motivo se decrementa antes de mostrarse, no estoy seguro todavia porque
 let timerId;
 function decreaseTimer(){
     let timerConteiner = document.querySelector("#timer");
