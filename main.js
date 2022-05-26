@@ -172,6 +172,7 @@ function animate(){
     ){
        player.isAttacking = false;
        console.log('ataque jugador')
+       document.querySelector('#enemyHealth').style.width = '20%'
     }
     if ( 
         rectangularCollision({
